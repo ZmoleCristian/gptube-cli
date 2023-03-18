@@ -187,7 +187,7 @@ function get_video_data() {
   video_title=$(cat tmp.data | sed -n '1{s/[^a-zA-Z0-9]/ /g;p}')
 
   if [ "$debug" = "debug" ]; then
-    echo "Video selected $video_title with id $video_id and language ($lang)"
+    echo "Video selected $video_title with id $video_id and language ($sub_lang)"
   fi
 }
 
@@ -198,7 +198,7 @@ function check_captions() {
 
   fi
   #check if the video has captions in the selected language
-  sub_result=$(yt-dlp -o tmp --write-auto-sub --sub-lang $lang --skip-download $url)
+  sub_result=$(yt-dlp -o tmp --write-auto-sub --sub-lang $sub_lang --skip-download $url)
   #check if the video has captions in the selected language
   if [[ $sub_result != *"There's no subtitles"* ]]; then
     if [ "$debug" = "debug" ]; then
@@ -234,7 +234,7 @@ function download_transcript() {
       echo "Extracting text from transcript..."
 
     fi
-    vtt_file_name=tmp.$lang.vtt
+    vtt_file_name=tmp.$sub_lang.vtt
     sed -i '1d' $vtt_file_name
     prompt=$(cat $vtt_file_name | grep : -v | awk '!seen[$0]++' | tr '\n' ',')
     if [ "$debug" = "debug" ]; then
