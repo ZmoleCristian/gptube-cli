@@ -198,7 +198,7 @@ function check_captions() {
 
   fi
   #check if the video has captions in the selected language
-  sub_result=$(yt-dlp --write-auto-sub --sub-lang $lang --skip-download $url)
+  sub_result=$(yt-dlp -o tmp --write-auto-sub --sub-lang $lang --skip-download $url)
   #check if the video has captions in the selected language
   if [[ $sub_result != *"There's no subtitles"* ]]; then
     if [ "$debug" = "debug" ]; then
