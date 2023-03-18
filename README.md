@@ -16,6 +16,23 @@ sudo make install
 This will install the necessary dependencies and create gptube executable in `/usr/local/bin`, allowing you to run the program from anywhere.
 <br><br>
 
+## Configuration
+GPTube can be configured by running the following command:
+
+```bash 
+gptube -c
+```
+Get an API Key from [OpenAI](https://platform.openai.com/) 
+
+This will prompt you to enter your 
+* API key 
+* subtitles language
+* custom prompt
+* allow whisper setting
+
+These settings will be saved to a JSON file located at `$HOME/.config/gptube/config.json.`
+<br><br>
+
 ## Usage
 To summarize a video using GPTube, run the following command:
 
@@ -44,19 +61,6 @@ GPTube supports the following options:
 * `-u` :  Specify YouTube URL
 <br><br>
 
-## Configuration
-GPTube can be configured by running the following command:
 
-```bash 
-gptube -c
-```
-This will prompt you to enter your 
-* API key
-* subtitles language
-* custom prompt
-* allow whisper setting
-
-These settings will be saved to a JSON file located at `$HOME/.config/gptube/config.json.`
-<br><br>
 ## License
 This project is licensed under the [GPLv3](https://choosealicense.com/licenses/gpl-3.0/)

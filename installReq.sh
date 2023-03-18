@@ -11,7 +11,7 @@ fi
 if [ -f /usr/bin/apt-get ]; then
   PM="apt-get"
   PM_INSTALL="install"
-  PM_PACKAGES="jq curl ffmpeg"
+  PM_PACKAGES="jq curl ffmpeg libmp3lame0"
   PM_YES="-y"
 elif [ -f /usr/bin/yum ]; then
   PM="yum"
@@ -21,7 +21,7 @@ elif [ -f /usr/bin/yum ]; then
 elif [ -f /usr/bin/pacman ]; then
   PM="pacman"
   PM_INSTALL="-S"
-  PM_PACKAGES="jq curl ffmpeg"
+  PM_PACKAGES="jq curl ffmpeg lame"
   PM_YES="--noconfirm --needed"
 
 else
