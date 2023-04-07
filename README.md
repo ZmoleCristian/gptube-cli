@@ -1,66 +1,97 @@
-# GPTube-cli
+# GPTube CLI
 
-GPTube-cli is a command-line tool that by default summarizes YouTube videos using the OpenAI GPT-3.5-turbo language model. This program is designed to simplify the process of creating summaries for videos by automating the transcription process and then using GPT-3.5-turbo to generate a summary.
+GPTube CLI is a command-line tool for generating video summaries based on transcripts from YouTube videos. The program extracts the video's closed captions, processes them using GPT-3 from OpenAI, and creates a summary of the video.
 
-You can also use it to make a compliment for the video author, criticize the video, or whatever you set the custom prompt to be.
-<br><br>
-## Installation
-To use GPTube, clone the repository and run the following command in the project directory:
+## 🚀 Features
+- ⬇️ Retrieves video data and captions from YouTube videos
+- 🤖 Utilizes OpenAI's GPT-3 for generating video summaries
+- ✍️ Offers post-processing functionality
+- 📃 Supports reading a list of video URLs for processing
 
-```bash
-git clone https://github.com/tragdate/gptube-cli.git
+##  📝 Requirements
+- 🦀 Rust 1.56.0 or later
+- 📦 Cargo
+- 🧠 Get an API Key from [OpenAI](https://platform.openai.com/) 
+- 📺 Latest [yt-dlp](https://github.com/yt-dlp/yt-dlp) binary
+
+<br>
+
+## 💾 Installation
+
+### 🪄 One command install 
+> Paste this in your command line to install both precompiled binaries from github straight into your /usr/local/bin/
+
+```shell
+sudo wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp && sudo chmod a+rx /usr/local/bin/yt-dlp && sudo wget https://github.com/tragdate/gptube-cli/releases/latest/download/gptube-cli -O /usr/local/bin/gptube-cli && sudo chmod a+rx /usr/local/bin/gptube-cli
+```
+#### OR
+
+### 🛠Installationl from source
+You can compile the program from source using `cargo`
+```command-line
+git clone https://github.com/tragdate/gptube-cli
 cd gptube-cli
-sudo make install
+cargo build --release
+sudo cp target/release/gptube-cli /usr/local/bin/
 ```
 
-This will install the necessary dependencies and create gptube executable in `/usr/local/bin`, allowing you to run the program from anywhere.
-<br><br>
-
-## Configuration
-GPTube can be configured by running the following command:
-
-```bash 
-gptube -c
+## 📍 Usage
+```plaintext
+gptube-cli [FLAGS] [OPTIONS]
 ```
-Get an API Key from [OpenAI](https://platform.openai.com/) 
 
-This will prompt you to enter your 
-* API key 
-* subtitles language
-* custom prompt
-* allow whisper setting
+### 🚩 Flags
 
-These settings will be saved to a JSON file located at `$HOME/.config/gptube/config.json.`
-<br><br>
+- `-d`, `--debug`
+  * Prints additional debugging information
+- `-p`, `--post_process`
+  * Post-processing functionality. Prompts for input on how to further process the generated summary
+- `-c`, `--config`
+  * Create a configuration file if not already available
 
-## Usage
-To summarize a video using GPTube, run the following command:
+### ⚙ Options
 
- 
-```bash
-gptube -u "YouTube URL"
+- `-u`, `--url`
+  * Provide a single YouTube video URL. Conflicts with `--url_list` and `--config`
+- `-l`, `--url_list`
+  * Provide a path to a file containing a list of YouTube video URLs separated by commas.
+
+#### List example
+`cat video-list.txt`
 ```
-`It works with any other video url that yt-dlp supports`
+https://www.youtube.com/watch?v=VIDEO_ID,
+https://www.youtube.com/watch?v=VIDEO_ID,
+https://www.youtube.com/watch?v=VIDEO_ID
+```
+### 📚 Examples
 
-This will download the video, generate a transcript, summarize the transcript using GPT-3, and print the summary to the console to the path that you run it in.
-<br><br>
+Create a configuration file, or update the existing one:
+```plaintext
+gptube-cli --config
+```
 
-## Whisper API
-If the video does not have subtitles in the given language at configuration, GPTube-cli will use the whipser api to generate subtitles. 
+Generate a summary for a single video:
+```plaintext
+gptube-cli -u 'https://www.youtube.com/watch?v=VIDEO_ID'
+```
 
-This feature can be disabled by setting the `allow_whisper` option to `false` in the configuration file when using `-c` option.
+Generate summaries for multiple videos from a list in a file:
+```plaintext
+gptube-cli -l 'video-list.txt'
+```
 
- `Notice that the whisper api is more expensive than the usual request, so you need to pay for it if you want to use it.`
-<br><br>
+Enable post-processing for generated summaries:
+```plaintext
+gptube-cli -u 'https://www.youtube.com/watch?v=VIDEO_ID' -p
+```
 
-## Options
-GPTube supports the following options:
+Enable debug mode:
+```plaintext
+gptube-cli -u 'https://www.youtube.com/watch?v=VIDEO_ID' -d
+```
 
-* `-d` :  Enable debug mode (prints additional information to the console)
-* `-c` :  Configure GPTube-cli settings
-* `-u` :  Specify YouTube URL
-<br><br>
-
+## 🥷 Author
+[Trag Date](https://tragdate.ninja)
 
 ## License
 This project is licensed under the [GPLv3](https://choosealicense.com/licenses/gpl-3.0/)

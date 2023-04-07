@@ -37,7 +37,11 @@ struct Config {
     allow_whisper: String,
 }
 
-async fn create_config() {
+async fn create_config(debug: bool) {
+    if debug {
+        println!("Creating configuration file...");
+    }
+
     let home = std::env::var("HOME").expect("Failed to get home directory");
     let config_dir = format!("{}/.config/gptube-cli", home);
     let config_file_path = format!("{}/.config/gptube-cli/config.json", home);
@@ -64,8 +68,16 @@ async fn create_config() {
         allow_whisper,
     };
 
+    if debug {
+        println!("Configuration data: {:?}", config);
+        println!("Creating config file at: {}", config_file_path);
+    }
+
     match config_file {
         Ok(_) => {
+            if debug {
+                println!("Updating existing configuration file");
+            }
             let mut file = fs::OpenOptions::new()
                 .write(true)
                 .truncate(true)
@@ -82,18 +94,28 @@ async fn create_config() {
 }
 
 
-async fn read_config() -> Result<Option<Config>, Box<dyn Error>> {
+async fn read_config(debug: bool) -> Result<Option<Config>, Box<dyn Error>> {
+    if debug {
+        println!("Reading configuration file...");
+    }
+
     let home = std::env::var("HOME").expect("Failed to get home directory");
     let config_file_path = format!("{}/.config/gptube-cli/config.json", home);
     let config_file = File::open(&config_file_path).await;
 
-    eprintln!("DEBUG: Config file path: {}", config_file_path);
+    if debug {
+        println!("Configuration file path: {}", config_file_path);
+    }
+
     match config_file {
         Ok(file) => {
             let buf_reader = BufReader::new(file);
             let mut framed = FramedRead::new(buf_reader, BytesCodec::new());
             let buf = framed.next().await.ok_or("Failed to read file")??;
             let config: Config = serde_json::from_slice(&buf)?;
+            if debug {
+                println!("Config OK");
+            }
             Ok(Some(config))
         }
         Err(_) => Ok(None),
@@ -102,6 +124,10 @@ async fn read_config() -> Result<Option<Config>, Box<dyn Error>> {
 
 
 async fn get_video_data_and_transcript(url: &str, lang: &str, debug: bool) -> (String, String, String) {
+    if debug {
+        println!("Retrieving video data and transcript for URL: {}", url);
+    }
+
     let start_time = Instant::now();
 
     let output = Command::new("yt-dlp")
@@ -144,7 +170,11 @@ async fn get_video_data_and_transcript(url: &str, lang: &str, debug: bool) -> (S
 }
 
 
-async fn parse_webvtt(vtt_file_content: &str) -> String {
+async fn parse_webvtt(vtt_file_content: &str, debug: bool) -> String {
+    if debug {
+        println!("Parsing WebVTT content...");
+    }
+
     let mut cues = Vec::new();
     let lines = vtt_file_content.lines();
 
@@ -169,6 +199,10 @@ async fn parse_webvtt(vtt_file_content: &str) -> String {
 }
 
 async fn send_to_gpt3(api_key: &str,custom_prompt: &str, sub_text: &str, debug: bool) -> String {
+    if debug {
+        println!("Sending text to GPT-3...");
+    }
+
     let client = Client::new();
     let request_body = json!({
         "model": "gpt-3.5-turbo",
@@ -184,8 +218,8 @@ async fn send_to_gpt3(api_key: &str,custom_prompt: &str, sub_text: &str, debug: 
         .expect("Failed to send request to GPT-3");
     
     let response_text: Value = response.json().await.expect("Failed to parse GPT-3 response");
-    if debug == true {
-        println!("{:?}", response_text);
+    if debug {
+        println!("GPT-3 response: {:?}", response_text);
     }
     
     if response_text["error"].is_string() {
@@ -197,7 +231,11 @@ async fn send_to_gpt3(api_key: &str,custom_prompt: &str, sub_text: &str, debug: 
     summary
 }
 // post processing function
-async fn post_process(api_key: &str, summary: &str) -> String {
+async fn post_process(api_key: &str, summary: &str, debug: bool) -> String {
+    if debug {
+        println!("Post-processing summary...");
+    }
+
     let opt = Opt::from_args();
 
     let mut current_summary = summary.to_string();
@@ -223,21 +261,27 @@ async fn post_process(api_key: &str, summary: &str) -> String {
 
 
 async fn process_url(api_key: &str, custom_prompt: &str, sub_lang: &str, url: &str, debug: bool) {
+    if debug {
+        println!("Processing URL: {}", url);
+    }
+
     let opt = Opt::from_args();
     let (video_title, video_id, vtt_file_content) = get_video_data_and_transcript(&url, &sub_lang, debug).await;
     if opt.url_list.is_some() {
         println!("Processing Video: {} with id {} and language {}", video_title, video_id, sub_lang);
     }
-    let sub_text = parse_webvtt(&vtt_file_content).await;
-    //let token_count = count_tokens(&sub_text).await;
-
-
+    let sub_text = parse_webvtt(&vtt_file_content, debug).await;
     let mut summary = send_to_gpt3(&api_key, &custom_prompt, &sub_text, debug).await;
     let summary_file_name = format!("Result-{}.{}.{}.summary", video_title, video_id, &sub_lang);
     let mut file = File::create(&summary_file_name).await.expect("Failed to create summary file");
     println!("Result: {}", summary);
+    if opt.url_list.is_some() {
+        summary = format!("Result for {}:\n{}\n\n", video_title, summary);
+    }else{
+        summary = format!("Result for {}:\n{}\n", video_title, summary);
+    }
     if opt.post_process {
-        summary = post_process(&api_key, &summary).await;
+        summary = post_process(&api_key, &summary, debug).await;
     }
     file.write_all(summary.as_bytes()).await.expect("Failed to write summary to file");
 }
@@ -246,10 +290,10 @@ async fn process_url(api_key: &str, custom_prompt: &str, sub_lang: &str, url: &s
 async fn main() {
     let opt = Opt::from_args();
     if opt.config {
-        create_config().await;
+        create_config(opt.debug).await;
         return;
     }
-    let config = read_config().await;
+    let config = read_config(opt.debug).await;
 
     if let Ok(Some(config)) = config {
         if let Some(url) = opt.url {
@@ -262,8 +306,9 @@ async fn main() {
                 let api_key = config.api_key.clone();
                 let custom_prompt = config.custom_prompt.clone();
                 let sub_lang = config.sub_lang.clone();
+                let debug = opt.debug;
                 tokio::spawn(async move {
-                    process_url(&api_key, &custom_prompt, &sub_lang, &url, opt.debug).await;
+                    process_url(&api_key, &custom_prompt, &sub_lang, &url, debug).await;
                 })
             }).collect::<Vec<_>>();
             
@@ -271,6 +316,7 @@ async fn main() {
         }
     } else {
         println!("No configuration file found.");
-        create_config().await;
+        create_config(opt.debug).await;
     }
 }
+
