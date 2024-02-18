@@ -1,6 +1,6 @@
 [package]
 name = "gptube-cli"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -16,3 +16,4 @@ scraper = "0.12"
 futures = "0.3"
 tokio-stream = "0.1.2"
 tokio-util = { version = "0.6", features = ["codec"] }
+openssl = { version = "0.10", features = ["vendored"] }
